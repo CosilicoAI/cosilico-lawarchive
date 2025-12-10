@@ -316,5 +316,41 @@ def validate(path: Path):
             console.print(f"  [yellow]WARNING:[/yellow] {w}")
 
 
+@main.command()
+@click.argument("path", type=click.Path(exists=True, path_type=Path))
+@click.option("--pe-var", "-v", required=True,
+              help="PolicyEngine variable name to compare (e.g., 'eitc', 'ctc')")
+@click.option("--tolerance", "-t", default=15.0,
+              help="Dollar tolerance for matching (default $15)")
+@click.option("--save", "-s", type=click.Path(path_type=Path),
+              help="Save report to JSON file")
+def verify(path: Path, pe_var: str, tolerance: float, save: Path | None):
+    """Verify a DSL encoding against PolicyEngine API.
+
+    Runs test cases through PolicyEngine's API and compares results
+    to expected values from the DSL encoding.
+
+    Examples:
+        lawarchive verify ~/.cosilico/workspace/federal/statute/26/32 -v eitc
+        lawarchive verify ~/.cosilico/workspace/federal/statute/26/24 -v ctc
+    """
+    from lawarchive.verifier import (
+        print_verification_report,
+        save_verification_report,
+        verify_encoding,
+    )
+
+    section_dir = path if path.is_dir() else path.parent
+
+    with console.status(f"Verifying against PolicyEngine API ({pe_var})..."):
+        report = verify_encoding(section_dir, pe_var, tolerance)
+
+    print_verification_report(report)
+
+    if save:
+        save_verification_report(report, save)
+        console.print(f"\n[dim]Report saved to {save}[/dim]")
+
+
 if __name__ == "__main__":
     main()

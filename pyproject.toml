@@ -33,6 +33,7 @@ dependencies = [
     "rich>=13.0",
     "sqlite-utils>=3.35",
     "anthropic>=0.75.0",
+    "requests>=2.32.5",
 ]
 
 [project.optional-dependencies]
