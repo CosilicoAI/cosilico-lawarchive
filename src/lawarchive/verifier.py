@@ -1,7 +1,7 @@
-"""Verification tool: Compare DSL encodings against PolicyEngine API.
+"""Verification tool: Compare DSL encodings against PolicyEngine.
 
 Similar to policyengine-taxsim validation - run test cases through both
-our DSL encodings and PolicyEngine's API, compare results.
+our DSL encodings and PolicyEngine's Python package, compare results.
 """
 
 from dataclasses import dataclass, field
@@ -9,14 +9,20 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import requests
 import yaml
 from rich.console import Console
 from rich.table import Table
 
 console = Console()
 
-POLICYENGINE_API_URL = "https://api.policyengine.org/us/calculate"
+# Try to import policyengine-us, fall back to API if not available
+try:
+    from policyengine_us import Simulation
+    USE_PACKAGE = True
+except ImportError:
+    import requests
+    USE_PACKAGE = False
+    POLICYENGINE_API_URL = "https://api.policyengine.org/us/calculate"
 
 
 @dataclass
@@ -221,14 +227,45 @@ def build_policyengine_situation(test_case: TestCase, year: int = 2024) -> dict:
     return situation
 
 
-def call_policyengine_api(
+def call_policyengine(
     situation: dict, output_variable: str, year: int = 2024
 ) -> tuple[float | None, str | None]:
-    """Call PolicyEngine API and get the calculated value.
+    """Calculate a variable using PolicyEngine.
+
+    Uses the Python package if available (faster, offline), otherwise
+    falls back to the web API.
+    """
+    if USE_PACKAGE:
+        return _call_policyengine_package(situation, output_variable, year)
+    else:
+        return _call_policyengine_api(situation, output_variable, year)
+
+
+def _call_policyengine_package(
+    situation: dict, output_variable: str, year: int = 2024
+) -> tuple[float | None, str | None]:
+    """Calculate using policyengine-us Python package."""
+    try:
+        sim = Simulation(situation=situation)
+        value = sim.calculate(output_variable, year)
+        # Handle array output (sum for tax unit level)
+        if hasattr(value, '__len__') and len(value) > 0:
+            return float(value[0]), None
+        return float(value), None
+    except Exception as e:
+        return None, str(e)
+
+
+def _call_policyengine_api(
+    situation: dict, output_variable: str, year: int = 2024
+) -> tuple[float | None, str | None]:
+    """Call PolicyEngine web API (fallback when package not installed).
 
     Note: PolicyEngine API requires you to request output variables by
     including them in the situation with a null value.
     """
+    import requests
+
     # Add the output variable to the tax_unit with null value to request it
     if "tax_units" in situation and "tax_unit" in situation["tax_units"]:
         situation["tax_units"]["tax_unit"][output_variable] = {str(year): None}
@@ -248,7 +285,6 @@ def call_policyengine_api(
         result = response.json()
 
         # Extract value from response
-        # PE API returns nested structure like {"result": {"tax_units": {"tax_unit": {"eitc": {"2024": 1234}}}}}
         if "result" in result:
             tax_units = result["result"].get("tax_units", {})
             if "tax_unit" in tax_units:
@@ -267,7 +303,7 @@ def call_policyengine_api(
 def verify_encoding(
     section_dir: Path, pe_variable: str, tolerance: float = 15.0
 ) -> VerificationReport:
-    """Verify a DSL encoding against PolicyEngine API.
+    """Verify a DSL encoding against PolicyEngine.
 
     Args:
         section_dir: Directory containing rules.cosilico and tests.yaml
@@ -307,8 +343,8 @@ def verify_encoding(
         # Build PE situation
         situation = build_policyengine_situation(tc)
 
-        # Call PE API
-        pe_value, error = call_policyengine_api(situation, pe_variable)
+        # Call PolicyEngine
+        pe_value, error = call_policyengine(situation, pe_variable)
 
         # Compare
         if pe_value is not None and expected_value is not None:
@@ -343,7 +379,8 @@ def print_verification_report(report: VerificationReport):
     """Print a formatted verification report."""
     console.print()
     console.print(f"[bold]Verification Report: {report.citation}[/bold]")
-    console.print(f"[dim]Compared against PolicyEngine variable: {report.policyengine_variable}[/dim]")
+    mode = "policyengine-us package" if USE_PACKAGE else "PolicyEngine API"
+    console.print(f"[dim]Compared against PolicyEngine variable: {report.policyengine_variable} (via {mode})[/dim]")
     console.print(f"[dim]Timestamp: {report.timestamp.isoformat()}[/dim]")
     console.print()
 

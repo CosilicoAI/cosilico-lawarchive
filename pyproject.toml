@@ -34,6 +34,7 @@ dependencies = [
     "sqlite-utils>=3.35",
     "anthropic>=0.75.0",
     "requests>=2.32.5",
+    "pyyaml>=6.0.3",
 ]
 
 [project.optional-dependencies]
@@ -47,6 +48,11 @@ dev = [
 postgres = [
     "sqlalchemy>=2.0",
     "psycopg2-binary>=2.9",
+]
+verify = [
+    "dpath>=2.0",
+    "policyengine-core>=3.20",
+    "policyengine-us>=1.45",
 ]
 
 [project.scripts]
