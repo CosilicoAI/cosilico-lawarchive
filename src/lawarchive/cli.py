@@ -197,5 +197,124 @@ def refs(ctx: click.Context, citation: str):
     ))
 
 
+@main.command()
+@click.argument("citation")
+@click.option("--output", "-o", type=click.Path(path_type=Path),
+              default=Path.home() / ".cosilico" / "workspace",
+              help="Output directory for encoded files")
+@click.option("--model", "-m", default="claude-sonnet-4-20250514",
+              help="Claude model to use for encoding")
+@click.pass_context
+def encode(ctx: click.Context, citation: str, output: Path, model: str):
+    """Encode a statute section into Cosilico DSL using AI.
+
+    Reads the statute from the archive and generates:
+    - rules.cosilico (DSL code)
+    - tests.yaml (test cases)
+    - statute.md (reference text)
+    - metadata.json (provenance)
+
+    Examples:
+        lawarchive encode "26 USC 32"
+        lawarchive encode "26 USC 24" -o ./my-workspace
+    """
+    from lawarchive.encoder import encode_and_save
+    from lawarchive.models import Citation
+
+    archive = LawArchive(db_path=ctx.obj["db"])
+
+    # Parse citation
+    try:
+        parsed = Citation.from_string(citation)
+    except ValueError as e:
+        console.print(f"[red]Invalid citation:[/red] {e}")
+        raise SystemExit(1) from e
+
+    # Get section
+    section = archive.storage.get_section(parsed.title, parsed.section)
+    if not section:
+        console.print(f"[red]Section not found:[/red] {citation}")
+        raise SystemExit(1)
+
+    console.print(f"[blue]Encoding:[/blue] {citation}")
+    console.print(f"[dim]Title: {section.section_title}[/dim]")
+    console.print(f"[dim]Text: {len(section.text)} chars, {len(section.subsections)} subsections[/dim]")
+    console.print()
+
+    with console.status(f"Generating DSL with {model}..."):
+        result = encode_and_save(section, output, model=model)
+
+    section_dir = output / "federal" / "statute" / str(parsed.title) / parsed.section
+
+    console.print("[green]✓ Encoding complete![/green]")
+    console.print()
+    console.print("[bold]Files created:[/bold]")
+    console.print(f"  📜 {section_dir / 'statute.md'}")
+    console.print(f"  📄 {section_dir / 'rules.cosilico'}")
+    console.print(f"  🧪 {section_dir / 'tests.yaml'}")
+    console.print(f"  📋 {section_dir / 'metadata.json'}")
+    console.print()
+    console.print(f"[dim]Model: {result.model}[/dim]")
+    console.print(f"[dim]Tokens: {result.prompt_tokens} in, {result.completion_tokens} out[/dim]")
+
+
+@main.command()
+@click.argument("path", type=click.Path(exists=True, path_type=Path))
+def validate(path: Path):
+    """Validate a local encoding.
+
+    Checks:
+    - DSL syntax
+    - Parameter references
+    - Test case format
+
+    Example:
+        lawarchive validate ~/.cosilico/workspace/federal/statute/26/32
+    """
+    # Find rules.cosilico file
+    rules_file = path / "rules.cosilico" if path.is_dir() else path
+
+    if not rules_file.exists():
+        console.print(f"[red]Not found:[/red] {rules_file}")
+        raise SystemExit(1)
+
+    content = rules_file.read_text()
+
+    # Basic validation
+    errors = []
+    warnings = []
+
+    # Check for required elements
+    if "variable " not in content and "parameter " not in content:
+        errors.append("No variable or parameter definitions found")
+
+    if "reference " not in content:
+        warnings.append("No statute references found")
+
+    if "formula {" not in content:
+        warnings.append("No formulas found - is this just parameters?")
+
+    # Count definitions
+    var_count = content.count("variable ")
+    param_count = content.count("parameter ")
+    ref_count = content.count('reference "')
+
+    if errors:
+        console.print("[red]✗ Validation failed[/red]")
+        for e in errors:
+            console.print(f"  [red]ERROR:[/red] {e}")
+        raise SystemExit(1)
+
+    console.print("[green]✓ Validation passed[/green]")
+    console.print(f"  Variables: {var_count}")
+    console.print(f"  Parameters: {param_count}")
+    console.print(f"  References: {ref_count}")
+
+    if warnings:
+        console.print()
+        for w in warnings:
+            console.print(f"  [yellow]WARNING:[/yellow] {w}")
+
+
 if __name__ == "__main__":
     main()
