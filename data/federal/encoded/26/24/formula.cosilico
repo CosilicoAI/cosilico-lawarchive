@@ -20,7 +20,7 @@ variable child_tax_credit:
 def child_tax_credit(tax_unit, year):
   # Step 1: Calculate base credit
   # § 24(h)(2): $2,000 per qualifying child for 2018-2025
-  children = tax_unit.qualifying_children_under_17
+  children = tax_unit.ctc_qualifying_children
   credit_per_child = parameters.ctc.credit_per_child[year]
   base_credit = children * credit_per_child
 
@@ -72,7 +72,7 @@ def additional_child_tax_credit(tax_unit, year):
   earned_income_amount = refundable_rate * max(0, earned_income - ei_threshold)
 
   # § 24(h)(5): Maximum refundable per child
-  children = tax_unit.qualifying_children_under_17
+  children = tax_unit.ctc_qualifying_children
   max_refundable = parameters.ctc.refundable_maximum[year]  # $1,700
   max_per_unit = children * max_refundable
 

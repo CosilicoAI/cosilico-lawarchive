@@ -30,7 +30,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 50000
-      qualifying_children_under_17: 1
+      ctc_qualifying_children: 1
       earned_income: 50000
     expected:
       ctc: 2000
@@ -41,7 +41,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 75000
-      qualifying_children_under_17: 2
+      ctc_qualifying_children: 2
       earned_income: 75000
     expected:
       ctc: 4000
@@ -52,7 +52,7 @@ test_cases:
     inputs:
       filing_status: joint
       agi: 150000
-      qualifying_children_under_17: 3
+      ctc_qualifying_children: 3
       earned_income: 150000
     expected:
       ctc: 6000
@@ -68,7 +68,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 210000
-      qualifying_children_under_17: 1
+      ctc_qualifying_children: 1
       earned_income: 210000
     expected:
       ctc: 1500
@@ -81,7 +81,7 @@ test_cases:
     inputs:
       filing_status: joint
       agi: 420000
-      qualifying_children_under_17: 1
+      ctc_qualifying_children: 1
       earned_income: 420000
     expected:
       ctc: 1000
@@ -93,7 +93,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 240000
-      qualifying_children_under_17: 1
+      ctc_qualifying_children: 1
       earned_income: 240000
     expected:
       ctc: 0
@@ -105,7 +105,7 @@ test_cases:
     inputs:
       filing_status: joint
       agi: 430000
-      qualifying_children_under_17: 2
+      ctc_qualifying_children: 2
       earned_income: 430000
     expected:
       ctc: 2500
@@ -121,7 +121,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 15000
-      qualifying_children_under_17: 1
+      ctc_qualifying_children: 1
       earned_income: 15000
       tax_liability: 0
     expected:
@@ -136,7 +136,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 5000
-      qualifying_children_under_17: 1
+      ctc_qualifying_children: 1
       earned_income: 5000
       tax_liability: 0
     expected:
@@ -150,7 +150,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 2000
-      qualifying_children_under_17: 1
+      ctc_qualifying_children: 1
       earned_income: 2000
       tax_liability: 0
     expected:
@@ -164,7 +164,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 25000
-      qualifying_children_under_17: 3
+      ctc_qualifying_children: 3
       earned_income: 25000
       tax_liability: 0
     expected:
@@ -181,7 +181,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 50000
-      qualifying_children_under_17: 0
+      ctc_qualifying_children: 0
       earned_income: 50000
     expected:
       ctc: 0
@@ -193,7 +193,7 @@ test_cases:
     inputs:
       filing_status: single
       agi: 50000
-      qualifying_children_under_17: 0
+      ctc_qualifying_children: 0
       children_age_17: 1
       earned_income: 50000
     expected:
@@ -206,7 +206,7 @@ test_cases:
     inputs:
       filing_status: joint
       agi: 500000
-      qualifying_children_under_17: 4
+      ctc_qualifying_children: 4
       earned_income: 500000
     expected:
       ctc: 3000
