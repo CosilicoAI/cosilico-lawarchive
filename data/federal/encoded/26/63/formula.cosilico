@@ -1,0 +1,104 @@
+# Standard Deduction
+# 26 USC § 63
+#
+# Deduction available to taxpayers who don't itemize.
+# Includes basic amount by filing status plus additional
+# amounts for age 65+ and blindness.
+
+variable standard_deduction:
+  entity: TaxUnit
+  period: Year
+  dtype: Money
+  label: "Standard Deduction"
+  citations:
+    - "26 USC § 63(c)"
+    - "26 USC § 63(f)"
+    - "Rev. Proc. 2023-34"
+
+def standard_deduction(tax_unit, year):
+  # Check for zero deduction cases first
+  # § 63(c)(6)(A): Zero if married filing separate and spouse itemizes
+  if tax_unit.filing_status == MARRIED_SEPARATE and tax_unit.spouse_itemizes:
+    return 0
+
+  # § 63(c)(6)(B): Zero for nonresident aliens
+  if tax_unit.is_nonresident_alien:
+    return 0
+
+  # Calculate basic standard deduction
+  basic = basic_standard_deduction(tax_unit, year)
+
+  # Calculate additional amounts for age/blindness
+  additional = additional_standard_deduction(tax_unit, year)
+
+  # § 63(c)(5): Apply dependent limitation if applicable
+  if tax_unit.is_dependent:
+    basic = dependent_standard_deduction(tax_unit, year)
+
+  return basic + additional
+
+
+# Basic standard deduction by filing status
+# § 63(c)(2)
+def basic_standard_deduction(tax_unit, year):
+  filing_status = tax_unit.filing_status
+
+  # § 63(c)(2)(A): Joint return
+  if filing_status == JOINT:
+    return parameters.standard_deduction.basic_joint[year]
+
+  # § 63(c)(2)(B): Head of household
+  if filing_status == HEAD_OF_HOUSEHOLD:
+    return parameters.standard_deduction.basic_head_of_household[year]
+
+  # § 63(c)(2)(C): Single or married filing separately (50% of joint)
+  return parameters.standard_deduction.basic_single[year]
+
+
+# Additional amounts for age 65+ and blindness
+# § 63(f)
+def additional_standard_deduction(tax_unit, year):
+  additional = 0
+
+  # Determine married vs unmarried amounts
+  is_married = tax_unit.filing_status in [JOINT, MARRIED_SEPARATE]
+
+  # § 63(f)(1): Additional for aged (65+)
+  if is_married:
+    aged_amount = parameters.standard_deduction.additional_aged_married[year]
+    blind_amount = parameters.standard_deduction.additional_blind_married[year]
+  else:
+    aged_amount = parameters.standard_deduction.additional_aged_unmarried[year]
+    blind_amount = parameters.standard_deduction.additional_blind_unmarried[year]
+
+  # Primary taxpayer
+  if tax_unit.age >= 65:
+    additional += aged_amount
+
+  # § 63(f)(2): Additional for blind
+  if tax_unit.is_blind:
+    additional += blind_amount
+
+  # Spouse (joint filers only)
+  if tax_unit.filing_status == JOINT:
+    if tax_unit.spouse_age >= 65:
+      additional += aged_amount
+    if tax_unit.spouse_is_blind:
+      additional += blind_amount
+
+  return additional
+
+
+# Dependent standard deduction
+# § 63(c)(5): Limited for those who can be claimed as dependent
+def dependent_standard_deduction(tax_unit, year):
+  earned_income = tax_unit.earned_income
+  addon = parameters.standard_deduction.dependent_earned_addon[year]
+  minimum = parameters.standard_deduction.dependent_minimum[year]
+  regular_max = basic_standard_deduction(tax_unit, year)
+
+  # § 63(c)(5)(A): Greater of minimum or (earned income + addon)
+  # But cannot exceed the regular basic standard deduction
+  dependent_amount = max(minimum, earned_income + addon)
+
+  return min(dependent_amount, regular_max)

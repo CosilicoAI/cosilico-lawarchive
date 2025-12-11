@@ -1,0 +1,100 @@
+# Child Tax Credit
+# 26 USC § 24
+#
+# Credit for qualifying children under 17.
+# Includes refundable portion (Additional Child Tax Credit).
+
+variable child_tax_credit:
+  entity: TaxUnit
+  period: Year
+  dtype: Money
+  label: "Child Tax Credit"
+  citations:
+    - "26 USC § 24"
+    - "Rev. Proc. 2023-34"
+
+# Main CTC formula
+# § 24(a): $2,000 per qualifying child
+# § 24(b): Phaseout at $200K single / $400K joint
+
+def child_tax_credit(tax_unit, year):
+  # Step 1: Calculate base credit
+  # § 24(h)(2): $2,000 per qualifying child for 2018-2025
+  children = tax_unit.qualifying_children_under_17
+  credit_per_child = parameters.ctc.credit_per_child[year]
+  base_credit = children * credit_per_child
+
+  # Step 2: Determine phaseout threshold
+  # § 24(b)(1)(A): $400,000 for joint returns
+  # § 24(b)(1)(B): $200,000 for all others
+  threshold = where(
+    tax_unit.filing_status == JOINT,
+    parameters.ctc.phaseout_threshold_joint[year],
+    parameters.ctc.phaseout_threshold_single[year]
+  )
+
+  # Step 3: Calculate phaseout reduction
+  # § 24(b)(2): $50 per $1,000 (or fraction) over threshold
+  excess_income = max(0, tax_unit.agi - threshold)
+  reduction_units = ceil(excess_income / 1000)
+  phaseout_rate = parameters.ctc.phaseout_rate[year]  # $50
+  reduction = reduction_units * phaseout_rate
+
+  # Step 4: Apply phaseout
+  credit_after_phaseout = max(0, base_credit - reduction)
+
+  return credit_after_phaseout
+
+
+variable additional_child_tax_credit:
+  entity: TaxUnit
+  period: Year
+  dtype: Money
+  label: "Additional Child Tax Credit (Refundable)"
+  citations:
+    - "26 USC § 24(d)"
+    - "26 USC § 24(h)(5)"
+
+# Refundable portion (ACTC)
+# § 24(d)(1)(B)(i): 15% of earned income over $2,500
+# § 24(h)(5): Limited to $1,700 per child (2024)
+
+def additional_child_tax_credit(tax_unit, year):
+  # Credit not usable against tax liability
+  ctc = child_tax_credit(tax_unit, year)
+  tax_liability = tax_unit.tax_liability_before_credits
+  unused_credit = max(0, ctc - tax_liability)
+
+  # § 24(d)(1)(B)(i): 15% of earned income over $2,500
+  earned_income = tax_unit.earned_income
+  ei_threshold = parameters.ctc.earned_income_threshold[year]  # $2,500
+  refundable_rate = parameters.ctc.refundable_rate[year]  # 15%
+  earned_income_amount = refundable_rate * max(0, earned_income - ei_threshold)
+
+  # § 24(h)(5): Maximum refundable per child
+  children = tax_unit.qualifying_children_under_17
+  max_refundable = parameters.ctc.refundable_maximum[year]  # $1,700
+  max_per_unit = children * max_refundable
+
+  # Refundable = min(unused credit, earned income formula, per-child cap)
+  actc = min(unused_credit, earned_income_amount, max_per_unit)
+
+  return actc
+
+
+variable total_child_tax_credit:
+  entity: TaxUnit
+  period: Year
+  dtype: Money
+  label: "Total Child Tax Credit (CTC + ACTC)"
+
+def total_child_tax_credit(tax_unit, year):
+  # Nonrefundable portion limited by tax liability
+  ctc = child_tax_credit(tax_unit, year)
+  tax_liability = tax_unit.tax_liability_before_credits
+  nonrefundable = min(ctc, tax_liability)
+
+  # Refundable portion
+  refundable = additional_child_tax_credit(tax_unit, year)
+
+  return nonrefundable + refundable

@@ -47,8 +47,19 @@ htmlcov/
 data/uscode/
 data/ecfr/
 data/states/
+data/snap/
+data/temp/
 *.db
 *.sqlite
+
+# Node
+node_modules/
+
+# Wrangler
+.wrangler/
+
+# Supabase temp
+supabase/.temp/
 
 # But keep the data directory structure
 !data/.gitkeep

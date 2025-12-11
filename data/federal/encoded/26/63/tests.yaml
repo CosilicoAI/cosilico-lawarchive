@@ -1,0 +1,244 @@
+# TDD Test Cases for 26 USC § 63 (Standard Deduction)
+#
+# These are OUR authoritative tests - derived from statute text.
+#
+# Sources:
+# - Statute: 26 USC § 63(c)
+# - TY 2024 values: Rev. Proc. 2023-34
+
+variable: standard_deduction
+tax_year: 2024
+
+# TY 2024 Parameters (from Rev. Proc. 2023-34):
+#   single: $14,600
+#   joint: $29,200
+#   married_separate: $14,600
+#   head_of_household: $21,900
+#   additional_aged: $1,550 (single/HoH), $1,550 (married)
+#   additional_blind: $1,550 (single/HoH), $1,550 (married)
+#   dependent_min: $1,300
+#   dependent_earned_plus: $450
+
+test_cases:
+  # ==========================================================================
+  # BASIC STANDARD DEDUCTION BY FILING STATUS
+  # ==========================================================================
+
+  - name: "Single filer"
+    inputs:
+      filing_status: single
+      age: 35
+      is_blind: false
+      is_dependent: false
+    expected:
+      standard_deduction: 14600
+    citations:
+      - "§ 63(c)(2)(C): single = applicable percentage of joint amount"
+      - "Rev. Proc. 2023-34: $14,600 for 2024"
+
+  - name: "Married filing jointly"
+    inputs:
+      filing_status: joint
+      age: 40
+      spouse_age: 38
+      is_blind: false
+      spouse_is_blind: false
+      is_dependent: false
+    expected:
+      standard_deduction: 29200
+    citations:
+      - "§ 63(c)(2)(A): joint return"
+      - "Rev. Proc. 2023-34: $29,200 for 2024"
+
+  - name: "Married filing separately"
+    inputs:
+      filing_status: married_separate
+      age: 45
+      is_blind: false
+      is_dependent: false
+    expected:
+      standard_deduction: 14600
+    citations:
+      - "§ 63(c)(2)(C): 50% of joint amount"
+
+  - name: "Head of household"
+    inputs:
+      filing_status: head_of_household
+      age: 35
+      is_blind: false
+      is_dependent: false
+    expected:
+      standard_deduction: 21900
+    citations:
+      - "§ 63(c)(2)(B): head of household"
+      - "Rev. Proc. 2023-34: $21,900 for 2024"
+
+  # ==========================================================================
+  # ADDITIONAL AMOUNTS FOR AGE 65+ AND BLIND
+  # ==========================================================================
+
+  - name: "Single, age 65"
+    description: "Base + additional for aged"
+    inputs:
+      filing_status: single
+      age: 65
+      is_blind: false
+      is_dependent: false
+    expected:
+      standard_deduction: 16150  # 14600 + 1550
+    citations:
+      - "§ 63(f)(1): additional amount for aged"
+      - "Rev. Proc. 2023-34: $1,550 additional (unmarried)"
+
+  - name: "Single, age 65, blind"
+    description: "Base + additional for aged + additional for blind"
+    inputs:
+      filing_status: single
+      age: 65
+      is_blind: true
+      is_dependent: false
+    expected:
+      standard_deduction: 17700  # 14600 + 1550 + 1550
+    citations:
+      - "§ 63(f)(1): additional for aged"
+      - "§ 63(f)(2): additional for blind"
+
+  - name: "Joint, both 65+"
+    description: "Base + 2 × additional for aged"
+    inputs:
+      filing_status: joint
+      age: 67
+      spouse_age: 66
+      is_blind: false
+      spouse_is_blind: false
+      is_dependent: false
+    expected:
+      standard_deduction: 32300  # 29200 + 1550 + 1550
+    citations:
+      - "§ 63(f)(1): additional for each aged spouse"
+
+  - name: "Joint, one 65+, one blind"
+    inputs:
+      filing_status: joint
+      age: 67
+      spouse_age: 55
+      is_blind: false
+      spouse_is_blind: true
+      is_dependent: false
+    expected:
+      standard_deduction: 32300  # 29200 + 1550 (aged) + 1550 (blind)
+    citations:
+      - "§ 63(f): additional amounts stack"
+
+  - name: "Joint, both 65+ and both blind"
+    inputs:
+      filing_status: joint
+      age: 70
+      spouse_age: 68
+      is_blind: true
+      spouse_is_blind: true
+      is_dependent: false
+    expected:
+      standard_deduction: 35400  # 29200 + 4×1550
+    citations:
+      - "§ 63(f): 4 additional amounts (2 aged + 2 blind)"
+
+  # ==========================================================================
+  # DEPENDENTS - Limited standard deduction
+  # ==========================================================================
+
+  - name: "Dependent with no earned income"
+    description: "Limited to $1,300 minimum"
+    inputs:
+      filing_status: single
+      age: 16
+      is_blind: false
+      is_dependent: true
+      earned_income: 0
+    expected:
+      standard_deduction: 1300
+    citations:
+      - "§ 63(c)(5)(A): dependent basic std ded limited"
+
+  - name: "Dependent with $500 earned income"
+    description: "Greater of $1,300 or ($500 + $450)"
+    inputs:
+      filing_status: single
+      age: 17
+      is_blind: false
+      is_dependent: true
+      earned_income: 500
+    expected:
+      standard_deduction: 1300  # max(1300, 500+450) = 1300
+    citations:
+      - "§ 63(c)(5)(A): greater of minimum or earned + $450"
+
+  - name: "Dependent with $3,000 earned income"
+    description: "Greater of $1,300 or ($3,000 + $450)"
+    inputs:
+      filing_status: single
+      age: 19
+      is_blind: false
+      is_dependent: true
+      earned_income: 3000
+    expected:
+      standard_deduction: 3450  # max(1300, 3000+450) = 3450
+    citations:
+      - "§ 63(c)(5)(A): earned income + $450"
+
+  - name: "Dependent with high earned income"
+    description: "Capped at regular standard deduction"
+    inputs:
+      filing_status: single
+      age: 22
+      is_blind: false
+      is_dependent: true
+      earned_income: 20000
+    expected:
+      standard_deduction: 14600  # capped at regular
+    citations:
+      - "§ 63(c)(5)(A): cannot exceed basic std ded"
+
+  - name: "Dependent, age 65, blind"
+    description: "Dependent rules + additional amounts"
+    inputs:
+      filing_status: single
+      age: 68
+      is_blind: true
+      is_dependent: true
+      earned_income: 2000
+    expected:
+      standard_deduction: 5550  # min(2000+450, 14600) + 1550 + 1550 = 2450 + 3100 = 5550
+    citations:
+      - "§ 63(c)(5): dependent limitation"
+      - "§ 63(f): additional amounts still apply"
+
+  # ==========================================================================
+  # EDGE CASES
+  # ==========================================================================
+
+  - name: "Married filing separately, spouse itemizes"
+    description: "Standard deduction = $0 if spouse itemizes"
+    inputs:
+      filing_status: married_separate
+      age: 40
+      is_blind: false
+      is_dependent: false
+      spouse_itemizes: true
+    expected:
+      standard_deduction: 0
+    citations:
+      - "§ 63(c)(6)(A): zero if spouse itemizes"
+
+  - name: "Nonresident alien"
+    description: "Standard deduction = $0"
+    inputs:
+      filing_status: single
+      age: 30
+      is_blind: false
+      is_dependent: false
+      is_nonresident_alien: true
+    expected:
+      standard_deduction: 0
+    citations:
+      - "§ 63(c)(6)(B): zero for nonresident aliens"

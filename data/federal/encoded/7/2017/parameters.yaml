@@ -1,0 +1,237 @@
+# Parameters for 7 USC § 2017 (SNAP - Value of Allotment)
+#
+# Values published annually in USDA FNS COLA memos.
+# Parameters vary by fiscal year (Oct 1 - Sep 30).
+
+citation: "7 USC § 2017"
+
+parameters:
+  # Maximum monthly allotments by household size
+  # 7 USC § 2017(a): 100% of Thrifty Food Plan cost
+  max_allotment_1:
+    description: "Maximum monthly allotment for 1-person household"
+    unit: currency-USD
+    values:
+      2023-10-01: 291  # FY 2024
+      2022-10-01: 281  # FY 2023
+      2021-10-01: 250  # FY 2022
+    citations:
+      - "7 USC § 2017(a): cost of thrifty food plan"
+      - "FNS FY2024 COLA memo"
+
+  max_allotment_2:
+    description: "Maximum monthly allotment for 2-person household"
+    unit: currency-USD
+    values:
+      2023-10-01: 535
+      2022-10-01: 516
+      2021-10-01: 459
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  max_allotment_3:
+    description: "Maximum monthly allotment for 3-person household"
+    unit: currency-USD
+    values:
+      2023-10-01: 766
+      2022-10-01: 740
+      2021-10-01: 658
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  max_allotment_4:
+    description: "Maximum monthly allotment for 4-person household"
+    unit: currency-USD
+    values:
+      2023-10-01: 973
+      2022-10-01: 939
+      2021-10-01: 835
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  max_allotment_5:
+    description: "Maximum monthly allotment for 5-person household"
+    unit: currency-USD
+    values:
+      2023-10-01: 1155
+      2022-10-01: 1116
+      2021-10-01: 992
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  max_allotment_6:
+    description: "Maximum monthly allotment for 6-person household"
+    unit: currency-USD
+    values:
+      2023-10-01: 1386
+      2022-10-01: 1339
+      2021-10-01: 1190
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  max_allotment_7:
+    description: "Maximum monthly allotment for 7-person household"
+    unit: currency-USD
+    values:
+      2023-10-01: 1532
+      2022-10-01: 1480
+      2021-10-01: 1316
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  max_allotment_8:
+    description: "Maximum monthly allotment for 8-person household"
+    unit: currency-USD
+    values:
+      2023-10-01: 1751
+      2022-10-01: 1691
+      2021-10-01: 1504
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  max_allotment_additional:
+    description: "Additional amount per person beyond 8"
+    unit: currency-USD
+    values:
+      2023-10-01: 219
+      2022-10-01: 211
+      2021-10-01: 188
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  # Standard deduction
+  # 7 USC § 2014(e)(1)
+  standard_deduction_1_3:
+    description: "Standard deduction for 1-3 person households"
+    unit: currency-USD
+    values:
+      2023-10-01: 198
+      2022-10-01: 193
+      2021-10-01: 177
+    citations:
+      - "7 USC § 2014(e)(1): standard deduction"
+      - "FNS FY2024 COLA memo"
+
+  standard_deduction_4:
+    description: "Standard deduction for 4-person households"
+    unit: currency-USD
+    values:
+      2023-10-01: 208
+      2022-10-01: 197
+      2021-10-01: 184
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  standard_deduction_5:
+    description: "Standard deduction for 5-person households"
+    unit: currency-USD
+    values:
+      2023-10-01: 244
+      2022-10-01: 230
+      2021-10-01: 215
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  standard_deduction_6_plus:
+    description: "Standard deduction for 6+ person households"
+    unit: currency-USD
+    values:
+      2023-10-01: 279
+      2022-10-01: 263
+      2021-10-01: 246
+    citations:
+      - "FNS FY2024 COLA memo"
+
+  # Earned income deduction rate
+  # 7 USC § 2014(e)(1)
+  earned_income_deduction_rate:
+    description: "Percentage of earned income deducted"
+    unit: rate
+    values:
+      1977-01-01: 0.20  # 20%
+    citations:
+      - "7 USC § 2014(e)(1): 20 percent of earned income"
+
+  # Expected contribution rate (benefit reduction rate)
+  # 7 USC § 2017(a)
+  expected_contribution_rate:
+    description: "Percentage of net income counted against benefits"
+    unit: rate
+    values:
+      1977-01-01: 0.30  # 30%
+    citations:
+      - "7 USC § 2017(a): 30 percent of household's net income"
+
+  # Excess shelter deduction cap
+  # 7 USC § 2014(e)(6)(B)
+  shelter_deduction_cap:
+    description: "Maximum excess shelter deduction (non-elderly/disabled)"
+    unit: currency-USD
+    values:
+      2023-10-01: 672
+      2022-10-01: 624
+      2021-10-01: 586
+    citations:
+      - "7 USC § 2014(e)(6)(B): excess shelter cap"
+      - "FNS FY2024 COLA memo"
+
+  # Minimum benefit
+  # 7 USC § 2017(a)
+  minimum_benefit:
+    description: "Minimum monthly benefit for 1-2 person households"
+    unit: currency-USD
+    values:
+      2023-10-01: 23
+      2022-10-01: 23
+      2021-10-01: 20
+    citations:
+      - "7 USC § 2017(a): minimum allotment"
+      - "FNS FY2024 COLA memo"
+
+  # Gross income limit (percentage of FPL)
+  # 7 USC § 2014(c)(2)
+  gross_income_limit_pct:
+    description: "Gross income limit as percentage of FPL"
+    unit: rate
+    values:
+      1977-01-01: 1.30  # 130%
+    citations:
+      - "7 USC § 2014(c)(2): 130 percent of poverty line"
+
+  # Net income limit (percentage of FPL)
+  # 7 USC § 2014(c)(1)
+  net_income_limit_pct:
+    description: "Net income limit as percentage of FPL"
+    unit: rate
+    values:
+      1977-01-01: 1.00  # 100%
+    citations:
+      - "7 USC § 2014(c)(1): 100 percent of poverty line"
+
+  # Federal Poverty Level (monthly, 48 states + DC)
+  # Used for eligibility determination
+  fpl_1_person:
+    description: "Monthly FPL for 1-person household"
+    unit: currency-USD
+    values:
+      2024-01-01: 1255  # $15,060 / 12
+      2023-01-01: 1215  # $14,580 / 12
+    citations:
+      - "HHS Poverty Guidelines 2024"
+
+  fpl_additional_person:
+    description: "Monthly FPL increment per additional person"
+    unit: currency-USD
+    values:
+      2024-01-01: 440   # $5,280 / 12
+      2023-01-01: 426   # $5,140 / 12
+    citations:
+      - "HHS Poverty Guidelines 2024"
+
+guidance_sources:
+  - path: us/guidance/usda/snap-fy2024-cola
+    applies_to_year: 2024
+    description: "FNS SNAP FY2024 COLA adjustments"
+  - path: us/guidance/hhs/poverty-guidelines-2024
+    applies_to_year: 2024
+    description: "HHS Poverty Guidelines 2024"

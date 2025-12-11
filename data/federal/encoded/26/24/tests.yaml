@@ -1,0 +1,214 @@
+# TDD Test Cases for 26 USC § 24 (Child Tax Credit)
+#
+# These are OUR authoritative tests - derived from statute text.
+# External validation (TAXSIM, PE) is separate.
+#
+# Sources:
+# - Statute: 26 USC § 24
+# - TY 2024 values: Rev. Proc. 2023-34
+
+variable: child_tax_credit
+tax_year: 2024
+
+# TY 2024 Parameters (from Rev. Proc. 2023-34):
+#   credit_per_child: $2,000
+#   refundable_max: $1,700
+#   phaseout_threshold_single: $200,000
+#   phaseout_threshold_joint: $400,000
+#   phaseout_rate: $50 per $1,000
+#   earned_income_threshold: $2,500
+#   refundable_rate: 15%
+#   qualifying_age: under 17
+
+test_cases:
+  # ==========================================================================
+  # BASIC CREDIT - Full credit scenarios
+  # ==========================================================================
+
+  - name: "Single filer, 1 child, below phaseout"
+    description: "Full $2,000 credit"
+    inputs:
+      filing_status: single
+      agi: 50000
+      qualifying_children_under_17: 1
+      earned_income: 50000
+    expected:
+      ctc: 2000
+    citations:
+      - "§ 24(a): $2,000 per qualifying child"
+
+  - name: "Single filer, 2 children, below phaseout"
+    inputs:
+      filing_status: single
+      agi: 75000
+      qualifying_children_under_17: 2
+      earned_income: 75000
+    expected:
+      ctc: 4000
+    citations:
+      - "§ 24(a): $2,000 × 2 children = $4,000"
+
+  - name: "Joint filers, 3 children, below phaseout"
+    inputs:
+      filing_status: joint
+      agi: 150000
+      qualifying_children_under_17: 3
+      earned_income: 150000
+    expected:
+      ctc: 6000
+    citations:
+      - "§ 24(a): $2,000 × 3 children = $6,000"
+
+  # ==========================================================================
+  # PHASE-OUT - Credit reduction at higher incomes
+  # ==========================================================================
+
+  - name: "Single, phaseout begins at $200,000"
+    description: "AGI $210,000 → reduce by $50 × 10 = $500"
+    inputs:
+      filing_status: single
+      agi: 210000
+      qualifying_children_under_17: 1
+      earned_income: 210000
+    expected:
+      ctc: 1500
+    citations:
+      - "§ 24(b)(1): threshold = $200,000 for non-joint"
+      - "§ 24(b)(2): reduce $50 per $1,000 over threshold"
+
+  - name: "Joint, phaseout begins at $400,000"
+    description: "AGI $420,000 → reduce by $50 × 20 = $1,000"
+    inputs:
+      filing_status: joint
+      agi: 420000
+      qualifying_children_under_17: 1
+      earned_income: 420000
+    expected:
+      ctc: 1000
+    citations:
+      - "§ 24(b)(1): threshold = $400,000 for joint"
+
+  - name: "Single, fully phased out"
+    description: "AGI $240,000 → reduce by $50 × 40 = $2,000 → $0"
+    inputs:
+      filing_status: single
+      agi: 240000
+      qualifying_children_under_17: 1
+      earned_income: 240000
+    expected:
+      ctc: 0
+    citations:
+      - "§ 24(b): credit fully phased out"
+
+  - name: "Joint, 2 children, partial phaseout"
+    description: "AGI $430,000 → reduce by $50 × 30 = $1,500 from $4,000"
+    inputs:
+      filing_status: joint
+      agi: 430000
+      qualifying_children_under_17: 2
+      earned_income: 430000
+    expected:
+      ctc: 2500
+    citations:
+      - "§ 24(b): $4,000 - $1,500 = $2,500"
+
+  # ==========================================================================
+  # REFUNDABLE PORTION (ACTC) - § 24(d)
+  # ==========================================================================
+
+  - name: "Low income, refundable credit"
+    description: "15% × ($15,000 - $2,500) = $1,875, capped at $1,700"
+    inputs:
+      filing_status: single
+      agi: 15000
+      qualifying_children_under_17: 1
+      earned_income: 15000
+      tax_liability: 0
+    expected:
+      ctc: 2000
+      actc: 1700
+    citations:
+      - "§ 24(d)(1)(B)(i): 15% of earned income over $2,500"
+      - "§ 24(h)(5): refundable limited to $1,700 (2024)"
+
+  - name: "Very low income, partial refundable"
+    description: "15% × ($5,000 - $2,500) = $375"
+    inputs:
+      filing_status: single
+      agi: 5000
+      qualifying_children_under_17: 1
+      earned_income: 5000
+      tax_liability: 0
+    expected:
+      ctc: 2000
+      actc: 375
+    citations:
+      - "§ 24(d)(1)(B)(i): 15% × $2,500 = $375"
+
+  - name: "Below earned income threshold"
+    description: "Earned income < $2,500 → no refundable credit"
+    inputs:
+      filing_status: single
+      agi: 2000
+      qualifying_children_under_17: 1
+      earned_income: 2000
+      tax_liability: 0
+    expected:
+      ctc: 2000
+      actc: 0
+    citations:
+      - "§ 24(d)(1)(B)(i): must exceed $2,500 threshold"
+
+  - name: "Multiple children, refundable capped"
+    description: "3 children × $1,700 max = $5,100 refundable cap"
+    inputs:
+      filing_status: single
+      agi: 25000
+      qualifying_children_under_17: 3
+      earned_income: 25000
+      tax_liability: 0
+    expected:
+      ctc: 6000
+      actc: 3375  # 15% × (25000 - 2500) = 3375, under 5100 cap
+    citations:
+      - "§ 24(d): refundable = min(credit, 15% × (EI - 2500))"
+
+  # ==========================================================================
+  # EDGE CASES
+  # ==========================================================================
+
+  - name: "No children"
+    inputs:
+      filing_status: single
+      agi: 50000
+      qualifying_children_under_17: 0
+      earned_income: 50000
+    expected:
+      ctc: 0
+    citations:
+      - "§ 24(a): credit only for qualifying children"
+
+  - name: "Child age 17 - not qualifying"
+    description: "Child must be UNDER 17"
+    inputs:
+      filing_status: single
+      agi: 50000
+      qualifying_children_under_17: 0
+      children_age_17: 1
+      earned_income: 50000
+    expected:
+      ctc: 0
+    citations:
+      - "§ 24(c)(1): must not have attained age 17"
+
+  - name: "High income with many children"
+    description: "Joint $500,000, 4 kids: $8,000 - $50×100 = $3,000"
+    inputs:
+      filing_status: joint
+      agi: 500000
+      qualifying_children_under_17: 4
+      earned_income: 500000
+    expected:
+      ctc: 3000
+    citations:
+      - "§ 24(b): $8,000 - $5,000 phaseout = $3,000"
