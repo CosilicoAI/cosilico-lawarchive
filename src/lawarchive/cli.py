@@ -43,14 +43,16 @@ def get(ctx: click.Context, citation: str, as_json: bool):
     if as_json:
         console.print_json(section.model_dump_json())
     else:
-        console.print(Panel(
-            f"[bold]{section.citation.usc_cite}[/bold]\n"
-            f"[dim]{section.title_name}[/dim]\n\n"
-            f"[bold blue]{section.section_title}[/bold blue]\n\n"
-            f"{section.text[:2000]}{'...' if len(section.text) > 2000 else ''}\n\n"
-            f"[dim]Source: {section.source_url}[/dim]",
-            title=section.citation.usc_cite,
-        ))
+        console.print(
+            Panel(
+                f"[bold]{section.citation.usc_cite}[/bold]\n"
+                f"[dim]{section.title_name}[/dim]\n\n"
+                f"[bold blue]{section.section_title}[/bold blue]\n\n"
+                f"{section.text[:2000]}{'...' if len(section.text) > 2000 else ''}\n\n"
+                f"[dim]Source: {section.source_url}[/dim]",
+                title=section.citation.usc_cite,
+            )
+        )
 
 
 @main.command()
@@ -136,8 +138,13 @@ def ingest(ctx: click.Context, xml_path: Path):
 
 @main.command()
 @click.argument("title_num", type=int)
-@click.option("--output", "-o", type=click.Path(path_type=Path), default=Path("data/uscode"),
-              help="Output directory")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(path_type=Path),
+    default=Path("data/uscode"),
+    help="Output directory",
+)
 def download(title_num: int, output: Path):
     """Download a US Code title from uscode.house.gov.
 
@@ -161,7 +168,6 @@ def serve(ctx: click.Context, host: str, port: int, reload: bool):
         lawarchive serve --host 0.0.0.0 --port 8080
     """
     import uvicorn
-
 
     console.print(f"[green]Starting server at http://{host}:{port}[/green]")
     console.print(f"[dim]API docs at http://{host}:{port}/docs[/dim]")
@@ -188,22 +194,31 @@ def refs(ctx: click.Context, citation: str):
     archive = LawArchive(db_path=ctx.obj["db"])
     refs = archive.get_references(citation)
 
-    console.print(Panel(
-        f"[bold]References from {citation}:[/bold]\n" +
-        "\n".join(f"  → {r}" for r in refs["references_to"]) or "  (none)" +
-        "\n\n[bold]Referenced by:[/bold]\n" +
-        "\n".join(f"  ← {r}" for r in refs["referenced_by"]) or "  (none)",
-        title=f"Cross-references: {citation}",
-    ))
+    console.print(
+        Panel(
+            f"[bold]References from {citation}:[/bold]\n"
+            + "\n".join(f"  → {r}" for r in refs["references_to"])
+            or "  (none)"
+            + "\n\n[bold]Referenced by:[/bold]\n"
+            + "\n".join(f"  ← {r}" for r in refs["referenced_by"])
+            or "  (none)",
+            title=f"Cross-references: {citation}",
+        )
+    )
 
 
 @main.command()
 @click.argument("citation")
-@click.option("--output", "-o", type=click.Path(path_type=Path),
-              default=Path.home() / ".cosilico" / "workspace",
-              help="Output directory for encoded files")
-@click.option("--model", "-m", default="claude-sonnet-4-20250514",
-              help="Claude model to use for encoding")
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(path_type=Path),
+    default=Path.home() / ".cosilico" / "workspace",
+    help="Output directory for encoded files",
+)
+@click.option(
+    "--model", "-m", default="claude-sonnet-4-20250514", help="Claude model to use for encoding"
+)
 @click.pass_context
 def encode(ctx: click.Context, citation: str, output: Path, model: str):
     """Encode a statute section into Cosilico DSL using AI.
@@ -238,7 +253,9 @@ def encode(ctx: click.Context, citation: str, output: Path, model: str):
 
     console.print(f"[blue]Encoding:[/blue] {citation}")
     console.print(f"[dim]Title: {section.section_title}[/dim]")
-    console.print(f"[dim]Text: {len(section.text)} chars, {len(section.subsections)} subsections[/dim]")
+    console.print(
+        f"[dim]Text: {len(section.text)} chars, {len(section.subsections)} subsections[/dim]"
+    )
     console.print()
 
     with console.status(f"Generating DSL with {model}..."):
@@ -318,12 +335,14 @@ def validate(path: Path):
 
 @main.command()
 @click.argument("path", type=click.Path(exists=True, path_type=Path))
-@click.option("--pe-var", "-v", required=True,
-              help="PolicyEngine variable name to compare (e.g., 'eitc', 'ctc')")
-@click.option("--tolerance", "-t", default=15.0,
-              help="Dollar tolerance for matching (default $15)")
-@click.option("--save", "-s", type=click.Path(path_type=Path),
-              help="Save report to JSON file")
+@click.option(
+    "--pe-var",
+    "-v",
+    required=True,
+    help="PolicyEngine variable name to compare (e.g., 'eitc', 'ctc')",
+)
+@click.option("--tolerance", "-t", default=15.0, help="Dollar tolerance for matching (default $15)")
+@click.option("--save", "-s", type=click.Path(path_type=Path), help="Save report to JSON file")
 def verify(path: Path, pe_var: str, tolerance: float, save: Path | None):
     """Verify a DSL encoding against PolicyEngine API.
 

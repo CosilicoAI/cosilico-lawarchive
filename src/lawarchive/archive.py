@@ -147,8 +147,36 @@ class LawArchive:
 
         # Update title metadata
         # Positive law titles (enacted into law directly, not just prima facie evidence)
-        positive_law_titles = {1, 3, 4, 5, 9, 10, 11, 13, 14, 17, 18, 23, 28, 31, 32, 34, 35,
-                              36, 37, 38, 39, 40, 41, 44, 46, 49, 51, 54}
+        positive_law_titles = {
+            1,
+            3,
+            4,
+            5,
+            9,
+            10,
+            11,
+            13,
+            14,
+            17,
+            18,
+            23,
+            28,
+            31,
+            32,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            44,
+            46,
+            49,
+            51,
+            54,
+        }
         is_positive_law = title_num in positive_law_titles
 
         self.storage.update_title_metadata(title_num, title_name, is_positive_law)

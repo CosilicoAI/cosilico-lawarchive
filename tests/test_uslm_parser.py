@@ -13,8 +13,7 @@ from lawarchive.parsers.uslm import USLMParser
 # Skip tests if Title 26 hasn't been downloaded
 TITLE_26_PATH = Path("data/uscode/usc26.xml")
 pytestmark = pytest.mark.skipif(
-    not TITLE_26_PATH.exists(),
-    reason="Title 26 XML not downloaded. Run: lawarchive download 26"
+    not TITLE_26_PATH.exists(), reason="Title 26 XML not downloaded. Run: lawarchive download 26"
 )
 
 
