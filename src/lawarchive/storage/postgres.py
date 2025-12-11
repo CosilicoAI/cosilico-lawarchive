@@ -31,7 +31,9 @@ def get_engine(database_url: str | None = None):
 
     url = database_url or os.environ.get("DATABASE_URL") or os.environ.get("SUPABASE_DB_URL")
     if not url:
-        raise ValueError("No database URL. Set DATABASE_URL or SUPABASE_DB_URL environment variable.")
+        raise ValueError(
+            "No database URL. Set DATABASE_URL or SUPABASE_DB_URL environment variable."
+        )
 
     return create_engine(url)
 
@@ -64,7 +66,8 @@ class PostgresStorage(StorageBackend):
             conn.execute(text("CREATE EXTENSION IF NOT EXISTS pg_trgm"))
 
             # Main sections table
-            conn.execute(text("""
+            conn.execute(
+                text("""
                 CREATE TABLE IF NOT EXISTS sections (
                     id TEXT PRIMARY KEY,
                     title INTEGER NOT NULL,
@@ -86,52 +89,68 @@ class PostgresStorage(StorageBackend):
 
                     UNIQUE(title, section, jurisdiction, doc_type)
                 )
-            """))
+            """)
+            )
 
             # Indexes for common queries
-            conn.execute(text("""
+            conn.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_sections_title
                 ON sections(title)
-            """))
-            conn.execute(text("""
+            """)
+            )
+            conn.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_sections_jurisdiction
                 ON sections(jurisdiction)
-            """))
-            conn.execute(text("""
+            """)
+            )
+            conn.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_sections_doc_type
                 ON sections(doc_type)
-            """))
+            """)
+            )
 
             # GIN index for full-text search on section_title and text
-            conn.execute(text("""
+            conn.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_sections_text_search
                 ON sections USING GIN (
                     (to_tsvector('english', COALESCE(section_title, '') || ' ' || COALESCE(text, '')))
                 )
-            """))
+            """)
+            )
 
             # Trigram index for fuzzy matching
-            conn.execute(text("""
+            conn.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_sections_title_trgm
                 ON sections USING GIN (section_title gin_trgm_ops)
-            """))
+            """)
+            )
 
             # Cross-references table
-            conn.execute(text("""
+            conn.execute(
+                text("""
                 CREATE TABLE IF NOT EXISTS cross_references (
                     from_id TEXT REFERENCES sections(id),
                     to_title INTEGER,
                     to_section TEXT,
                     PRIMARY KEY (from_id, to_title, to_section)
                 )
-            """))
-            conn.execute(text("""
+            """)
+            )
+            conn.execute(
+                text("""
                 CREATE INDEX IF NOT EXISTS idx_xref_to
                 ON cross_references(to_title, to_section)
-            """))
+            """)
+            )
 
             # Title metadata
-            conn.execute(text("""
+            conn.execute(
+                text("""
                 CREATE TABLE IF NOT EXISTS titles (
                     number INTEGER,
                     jurisdiction TEXT DEFAULT 'federal',
@@ -141,17 +160,24 @@ class PostgresStorage(StorageBackend):
                     is_positive_law BOOLEAN,
                     PRIMARY KEY (number, jurisdiction)
                 )
-            """))
+            """)
+            )
 
             conn.commit()
 
-    def store_section(self, section: Section, jurisdiction: str = "federal", doc_type: str = "statute") -> None:
+    def store_section(
+        self, section: Section, jurisdiction: str = "federal", doc_type: str = "statute"
+    ) -> None:
         """Store a section in the database."""
-        section_id = section.uslm_id or f"{jurisdiction}/{doc_type}/{section.citation.title}/{section.citation.section}"
+        section_id = (
+            section.uslm_id
+            or f"{jurisdiction}/{doc_type}/{section.citation.title}/{section.citation.section}"
+        )
 
         with self.Session() as session:
             # Upsert section
-            session.execute(text("""
+            session.execute(
+                text("""
                 INSERT INTO sections (
                     id, title, section, jurisdiction, doc_type,
                     title_name, section_title, text, subsections,
@@ -176,40 +202,49 @@ class PostgresStorage(StorageBackend):
                     referenced_by = EXCLUDED.referenced_by,
                     source_url = EXCLUDED.source_url,
                     retrieved_at = EXCLUDED.retrieved_at
-            """), {
-                "id": section_id,
-                "title": section.citation.title,
-                "section": section.citation.section,
-                "jurisdiction": jurisdiction,
-                "doc_type": doc_type,
-                "title_name": section.title_name,
-                "section_title": section.section_title,
-                "text": section.text,
-                "subsections": json.dumps([self._subsection_to_dict(s) for s in section.subsections]),
-                "enacted_date": section.enacted_date,
-                "last_amended": section.last_amended,
-                "public_laws": json.dumps(section.public_laws),
-                "effective_date": section.effective_date,
-                "references_to": json.dumps(section.references_to),
-                "referenced_by": json.dumps(section.referenced_by),
-                "source_url": section.source_url,
-                "retrieved_at": section.retrieved_at,
-            })
+            """),
+                {
+                    "id": section_id,
+                    "title": section.citation.title,
+                    "section": section.citation.section,
+                    "jurisdiction": jurisdiction,
+                    "doc_type": doc_type,
+                    "title_name": section.title_name,
+                    "section_title": section.section_title,
+                    "text": section.text,
+                    "subsections": json.dumps(
+                        [self._subsection_to_dict(s) for s in section.subsections]
+                    ),
+                    "enacted_date": section.enacted_date,
+                    "last_amended": section.last_amended,
+                    "public_laws": json.dumps(section.public_laws),
+                    "effective_date": section.effective_date,
+                    "references_to": json.dumps(section.references_to),
+                    "referenced_by": json.dumps(section.referenced_by),
+                    "source_url": section.source_url,
+                    "retrieved_at": section.retrieved_at,
+                },
+            )
 
             # Update cross-references
-            session.execute(text("DELETE FROM cross_references WHERE from_id = :id"), {"id": section_id})
+            session.execute(
+                text("DELETE FROM cross_references WHERE from_id = :id"), {"id": section_id}
+            )
             for ref in section.references_to:
                 try:
                     ref_citation = Citation.from_string(ref)
-                    session.execute(text("""
+                    session.execute(
+                        text("""
                         INSERT INTO cross_references (from_id, to_title, to_section)
                         VALUES (:from_id, :to_title, :to_section)
                         ON CONFLICT DO NOTHING
-                    """), {
-                        "from_id": section_id,
-                        "to_title": ref_citation.title,
-                        "to_section": ref_citation.section,
-                    })
+                    """),
+                        {
+                            "from_id": section_id,
+                            "to_title": ref_citation.title,
+                            "to_section": ref_citation.section,
+                        },
+                    )
                 except ValueError:
                     pass
 
@@ -243,11 +278,14 @@ class PostgresStorage(StorageBackend):
     ) -> Section | None:
         """Retrieve a section by citation."""
         with self.Session() as session:
-            result = session.execute(text("""
+            result = session.execute(
+                text("""
                 SELECT * FROM sections
                 WHERE title = :title AND section = :section AND jurisdiction = :jurisdiction
                 LIMIT 1
-            """), {"title": title, "section": section, "jurisdiction": jurisdiction}).fetchone()
+            """),
+                {"title": title, "section": section, "jurisdiction": jurisdiction},
+            ).fetchone()
 
             if not result:
                 return None
@@ -305,7 +343,8 @@ class PostgresStorage(StorageBackend):
             where_clause = " AND ".join(conditions)
 
             # Use ts_rank for relevance scoring
-            results = session.execute(text(f"""
+            results = session.execute(
+                text(f"""
                 SELECT
                     title, section, section_title,
                     ts_headline('english', text, plainto_tsquery('english', :query),
@@ -320,7 +359,9 @@ class PostgresStorage(StorageBackend):
                         @@ plainto_tsquery('english', :query)
                 ORDER BY score DESC
                 LIMIT :limit
-            """), params).fetchall()
+            """),
+                params,
+            ).fetchall()
 
             return [
                 SearchResult(
@@ -335,11 +376,14 @@ class PostgresStorage(StorageBackend):
     def list_titles(self, jurisdiction: str = "federal") -> list[TitleInfo]:
         """List all available titles with metadata."""
         with self.Session() as session:
-            results = session.execute(text("""
+            results = session.execute(
+                text("""
                 SELECT * FROM titles
                 WHERE jurisdiction = :jurisdiction
                 ORDER BY number
-            """), {"jurisdiction": jurisdiction}).fetchall()
+            """),
+                {"jurisdiction": jurisdiction},
+            ).fetchall()
 
             return [
                 TitleInfo(
@@ -355,41 +399,47 @@ class PostgresStorage(StorageBackend):
     def get_references_to(self, title: int, section: str) -> list[str]:
         """Get sections that this section references."""
         with self.Session() as session:
-            results = session.execute(text("""
+            results = session.execute(
+                text("""
                 SELECT to_title, to_section FROM cross_references cr
                 JOIN sections s ON cr.from_id = s.id
                 WHERE s.title = :title AND s.section = :section
-            """), {"title": title, "section": section}).fetchall()
+            """),
+                {"title": title, "section": section},
+            ).fetchall()
 
             return [f"{row.to_title} USC {row.to_section}" for row in results]
 
     def get_referenced_by(self, title: int, section: str) -> list[str]:
         """Get sections that reference this section."""
         with self.Session() as session:
-            results = session.execute(text("""
+            results = session.execute(
+                text("""
                 SELECT s.title, s.section FROM cross_references cr
                 JOIN sections s ON cr.from_id = s.id
                 WHERE cr.to_title = :title AND cr.to_section = :section
-            """), {"title": title, "section": section}).fetchall()
+            """),
+                {"title": title, "section": section},
+            ).fetchall()
 
             return [f"{row.title} USC {row.section}" for row in results]
 
     def update_title_metadata(
-        self,
-        title_num: int,
-        name: str,
-        is_positive_law: bool,
-        jurisdiction: str = "federal"
+        self, title_num: int, name: str, is_positive_law: bool, jurisdiction: str = "federal"
     ) -> None:
         """Update metadata for a title."""
         with self.Session() as session:
             # Count sections
-            count = session.execute(text("""
+            count = session.execute(
+                text("""
                 SELECT COUNT(*) FROM sections
                 WHERE title = :title AND jurisdiction = :jurisdiction
-            """), {"title": title_num, "jurisdiction": jurisdiction}).scalar()
+            """),
+                {"title": title_num, "jurisdiction": jurisdiction},
+            ).scalar()
 
-            session.execute(text("""
+            session.execute(
+                text("""
                 INSERT INTO titles (number, jurisdiction, name, section_count, last_updated, is_positive_law)
                 VALUES (:number, :jurisdiction, :name, :count, :updated, :positive_law)
                 ON CONFLICT (number, jurisdiction) DO UPDATE SET
@@ -397,14 +447,16 @@ class PostgresStorage(StorageBackend):
                     section_count = EXCLUDED.section_count,
                     last_updated = EXCLUDED.last_updated,
                     is_positive_law = EXCLUDED.is_positive_law
-            """), {
-                "number": title_num,
-                "jurisdiction": jurisdiction,
-                "name": name,
-                "count": count,
-                "updated": date.today(),
-                "positive_law": is_positive_law,
-            })
+            """),
+                {
+                    "number": title_num,
+                    "jurisdiction": jurisdiction,
+                    "name": name,
+                    "count": count,
+                    "updated": date.today(),
+                    "positive_law": is_positive_law,
+                },
+            )
             session.commit()
 
     def get_stats(self) -> dict:
@@ -413,26 +465,26 @@ class PostgresStorage(StorageBackend):
             stats = {}
 
             # Total sections by type
-            results = session.execute(text("""
+            results = session.execute(
+                text("""
                 SELECT jurisdiction, doc_type, COUNT(*) as count
                 FROM sections
                 GROUP BY jurisdiction, doc_type
-            """)).fetchall()
+            """)
+            ).fetchall()
 
-            stats["sections_by_type"] = {
-                f"{r.jurisdiction}/{r.doc_type}": r.count for r in results
-            }
+            stats["sections_by_type"] = {f"{r.jurisdiction}/{r.doc_type}": r.count for r in results}
 
             # Total sections
-            stats["total_sections"] = session.execute(text(
-                "SELECT COUNT(*) FROM sections"
-            )).scalar()
+            stats["total_sections"] = session.execute(
+                text("SELECT COUNT(*) FROM sections")
+            ).scalar()
 
             # Database size (PostgreSQL specific)
             try:
-                stats["db_size"] = session.execute(text(
-                    "SELECT pg_size_pretty(pg_database_size(current_database()))"
-                )).scalar()
+                stats["db_size"] = session.execute(
+                    text("SELECT pg_size_pretty(pg_database_size(current_database()))")
+                ).scalar()
             except Exception:
                 stats["db_size"] = "unknown"
 

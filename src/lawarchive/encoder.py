@@ -184,7 +184,9 @@ def encode_and_save(
     encoding = encode_section(section, model)
 
     # Create output directory
-    section_dir = output_dir / "federal" / "statute" / str(section.citation.title) / section.citation.section
+    section_dir = (
+        output_dir / "federal" / "statute" / str(section.citation.title) / section.citation.section
+    )
     section_dir.mkdir(parents=True, exist_ok=True)
 
     # Save statute text
@@ -201,7 +203,9 @@ def encode_and_save(
     if encoding.test_cases:
         import yaml
 
-        (section_dir / "tests.yaml").write_text(yaml.dump(encoding.test_cases, default_flow_style=False))
+        (section_dir / "tests.yaml").write_text(
+            yaml.dump(encoding.test_cases, default_flow_style=False)
+        )
 
     # Save metadata
     import json

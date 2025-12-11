@@ -101,9 +101,7 @@ class SQLiteStorage(StorageBackend):
                 },
                 pk=("from_title", "from_section", "to_title", "to_section"),
             )
-            self.db["cross_references"].create_index(
-                ["to_title", "to_section"], if_not_exists=True
-            )
+            self.db["cross_references"].create_index(["to_title", "to_section"], if_not_exists=True)
 
         # Title metadata
         if "titles" not in self.db.table_names():
@@ -121,9 +119,7 @@ class SQLiteStorage(StorageBackend):
     def store_section(self, section: Section) -> None:
         """Store a section in the database."""
         # Serialize subsections to JSON
-        subsections_json = json.dumps(
-            [self._subsection_to_dict(s) for s in section.subsections]
-        )
+        subsections_json = json.dumps([self._subsection_to_dict(s) for s in section.subsections])
 
         record = {
             "id": section.uslm_id or f"{section.citation.title}/{section.citation.section}",

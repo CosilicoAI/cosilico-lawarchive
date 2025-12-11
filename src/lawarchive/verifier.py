@@ -4,7 +4,7 @@ Similar to policyengine-taxsim validation - run test cases through both
 our DSL encodings and PolicyEngine's Python package, compare results.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -18,9 +18,9 @@ console = Console()
 # Try to import policyengine-us, fall back to API if not available
 try:
     from policyengine_us import Simulation
+
     USE_PACKAGE = True
 except ImportError:
-    import requests
     USE_PACKAGE = False
     POLICYENGINE_API_URL = "https://api.policyengine.org/us/calculate"
 
@@ -188,9 +188,7 @@ def build_policyengine_situation(test_case: TestCase, year: int = 2024) -> dict:
 
     # Handle earned income (split into employment income for PE)
     if "earned_income" in inputs:
-        situation["people"]["adult"]["employment_income"] = {
-            str(year): inputs["earned_income"]
-        }
+        situation["people"]["adult"]["employment_income"] = {str(year): inputs["earned_income"]}
 
     # Handle filing status - affects household structure
     filing_status = inputs.get("filing_status", "SINGLE")
@@ -249,7 +247,7 @@ def _call_policyengine_package(
         sim = Simulation(situation=situation)
         value = sim.calculate(output_variable, year)
         # Handle array output (sum for tax unit level)
-        if hasattr(value, '__len__') and len(value) > 0:
+        if hasattr(value, "__len__") and len(value) > 0:
             return float(value[0]), None
         return float(value), None
     except Exception as e:
@@ -380,7 +378,9 @@ def print_verification_report(report: VerificationReport):
     console.print()
     console.print(f"[bold]Verification Report: {report.citation}[/bold]")
     mode = "policyengine-us package" if USE_PACKAGE else "PolicyEngine API"
-    console.print(f"[dim]Compared against PolicyEngine variable: {report.policyengine_variable} (via {mode})[/dim]")
+    console.print(
+        f"[dim]Compared against PolicyEngine variable: {report.policyengine_variable} (via {mode})[/dim]"
+    )
     console.print(f"[dim]Timestamp: {report.timestamp.isoformat()}[/dim]")
     console.print()
 

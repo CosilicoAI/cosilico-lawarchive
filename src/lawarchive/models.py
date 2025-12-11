@@ -84,7 +84,9 @@ class Section(BaseModel):
     public_laws: list[str] = Field(
         default_factory=list, description="Public law numbers that affected this section"
     )
-    effective_date: date | None = Field(None, description="Effective date if different from enactment")
+    effective_date: date | None = Field(
+        None, description="Effective date if different from enactment"
+    )
 
     # Cross-references
     references_to: list[str] = Field(
