@@ -1,0 +1,17 @@
+description: DC personal exemption amounts
+reference:
+- title: D.C. Code Section 47-1806.02
+  href: https://code.dccouncil.us/us/dc/council/code/sections/47-1806.02.html
+notes:
+- Exemption for taxpayer, spouse/domestic partner if no gross income
+- Additional exemptions for head of household, blind, age 65+, dependents
+- Phaseout begins at AGI over $150,000 (2% reduction per $2,500)
+- No exemption available above AGI of $275,000
+values:
+  '2013-01-01':
+    base_amount: 1675
+    cola_adjustment: true
+    phaseout:
+      start: 150000
+      rate_per_2500: 0.02
+      complete_at: 275000

@@ -1,0 +1,22 @@
+description: DC Earned Income Tax Credit parameters
+reference:
+- title: D.C. Code Section 47-1806.04(f)
+  href: https://code.dccouncil.us/us/dc/council/code/sections/47-1806.04.html#(f)
+notes:
+- 'With qualifying child: 40% of federal EITC'
+- 'Without qualifying child: Custom DC calculation'
+- Refundable credit
+values:
+  '2009-01-01':
+    with_qualifying_child:
+      federal_match_rate: 0.4
+      description: 40% of federal EITC for filers with qualifying children
+    without_qualifying_child:
+      phaseout_rate: 0.0848
+      phaseout_start: 17235
+      description: Custom calculation for filers without qualifying children
+      notes: Phaseout start adjusted annually for cost-of-living
+  '2005-01-01':
+    with_qualifying_child:
+      federal_match_rate: 0.4
+      description: 40% of federal EITC

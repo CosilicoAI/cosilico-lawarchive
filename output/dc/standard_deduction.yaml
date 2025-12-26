@@ -1,0 +1,20 @@
+description: DC standard deduction amounts
+reference:
+- title: D.C. Code Section 47-1801.04(26)
+  href: https://code.dccouncil.us/us/dc/council/code/sections/47-1801.04.html
+notes:
+- Amounts adjusted annually for cost-of-living
+- Higher amounts subject to availability of funding per Section 47-181
+values:
+  '2015-01-01':
+    single: 5200
+    head_of_household: 6500
+    married_filing_jointly: 8350
+    married_filing_separately: 2600
+    notes: Base amounts, adjusted annually for COLA
+  '2000-01-01':
+    single: 4000
+    head_of_household: 4000
+    married_filing_jointly: 4000
+    married_filing_separately: 2000
+    notes: Pre-2015 uniform deduction, adjusted for COLA

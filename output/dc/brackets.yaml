@@ -1,0 +1,64 @@
+description: DC individual income tax rate brackets
+reference:
+- title: D.C. Code Section 47-1806.03
+  href: https://code.dccouncil.us/us/dc/council/code/sections/47-1806.03.html
+notes:
+- DC uses a single rate schedule for all filing statuses
+- Some rates are subject to availability of funding per Section 47-181
+values:
+  '2016-01-01':
+  - threshold: 0
+    rate: 0.04
+    base: 0
+    ceiling: 10000
+  - threshold: 10000
+    rate: 0.06
+    base: 400
+    ceiling: 40000
+  - threshold: 40000
+    rate: 0.065
+    base: 2200
+    ceiling: 60000
+  - threshold: 60000
+    rate: 0.085
+    base: 3500
+    ceiling: 350000
+  - threshold: 350000
+    rate: 0.0875
+    base: 28150
+    ceiling: 1000000
+  - threshold: 1000000
+    rate: 0.0895
+    base: 85025
+  '2015-01-01':
+  - threshold: 0
+    rate: 0.04
+    base: 0
+    ceiling: 10000
+  - threshold: 10000
+    rate: 0.06
+    base: 400
+    ceiling: 40000
+  - threshold: 40000
+    rate: 0.07
+    base: 2200
+    ceiling: 60000
+  - threshold: 60000
+    rate: 0.085
+    base: 3600
+    ceiling: 350000
+  - threshold: 350000
+    rate: 0.0895
+    base: 28250
+  '2006-01-01':
+  - threshold: 0
+    rate: 0.04
+    base: 0
+    ceiling: 10000
+  - threshold: 10000
+    rate: 0.06
+    base: 400
+    ceiling: 40000
+  - threshold: 40000
+    rate: 0.085
+    base: 2200
