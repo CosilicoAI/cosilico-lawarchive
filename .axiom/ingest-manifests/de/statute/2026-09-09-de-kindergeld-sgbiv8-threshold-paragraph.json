@@ -6,11 +6,11 @@
     },
     {
       "path": "data/corpus/inventory/de/statute/2026-09-09-de-kindergeld-sgbiv8-threshold-paragraph.json",
-      "sha256": "0e104c63c42657566e4516f75aaa0de7bc0da67787edbdaeec91d0a663d65136"
+      "sha256": "2d453639cf033cbfe3f7977ef46f489ce13bcd36c4a98c3f1ddb9ba3b2238c54"
     },
     {
       "path": "data/corpus/provisions/de/statute/2026-09-09-de-kindergeld-sgbiv8-threshold-paragraph.jsonl",
-      "sha256": "5444c30187cb52f56e9fc10c130dcdcea28ae5b2be735c451b312b49ddc87f05"
+      "sha256": "40e39360da953cbe298ace3400974ed15ec4fcc40a9b973eeb1a5644ec86f64c"
     },
     {
       "path": "data/corpus/sources/de/statute/2026-09-09-de-kindergeld-sgbiv8-threshold-paragraph/official-documents/de-sgbiv8-2025-absatz-1a.html",
@@ -18,13 +18,13 @@
     }
   ],
   "axiom_corpus_git": {
-    "commit": "99baf655a5783e2479fa070b3f9a61a7c8ac9382",
+    "commit": "6ffcc2d057019b69bade97ab457c935d84549337",
     "dirty_tracked": false,
     "root": "."
   },
   "axiom_corpus_version": "0.1.0",
   "command": {
-    "text": "extract-official-documents --base data/corpus --version 2026-09-09-de-kindergeld-sgbiv8-threshold-paragraph --manifest manifests/de-kindergeld-sgbiv8-threshold-paragraph.yaml; supported local_path replay of unchanged official HTML snapshot with declared sha256"
+    "text": "extract-official-documents --base data/corpus --version 2026-09-09-de-kindergeld-sgbiv8-threshold-paragraph --manifest manifests/de-kindergeld-sgbiv8-threshold-paragraph.yaml; native named anchor_range, supported local_path replay of unchanged official HTML snapshot with declared sha256"
   },
   "coverage": {
     "complete": true,
@@ -35,7 +35,7 @@
     "source_count": 2
   },
   "document_class": "statute",
-  "generated_at": "2026-09-09T15:05:34.654182+00:00",
+  "generated_at": "2026-09-09T15:09:32.880240+00:00",
   "jurisdiction": "de",
   "reasoning_logs": [
     {
@@ -47,7 +47,7 @@
   "signature": {
     "algorithm": "ed25519",
     "key_id": "axiom-corpus-ingest-v1",
-    "value": "ajsDJ9K29x71VTEebsQjp6o8sxAkbEP6tyc+reehoCHskViAjN1OkQs6DSvk2s+aXOsb6zCyFLLOZuLyhuvqAg=="
+    "value": "8tyq0YXtsUqKkPg7EPj194oL78F8cspqovt7taQPGl5ATiNt/fxNuyX66Xy6PxKHzthFGCizemi+fy/YWi6FDQ=="
   },
   "tool": "axiom-corpus-ingest signed ingest manifest",
   "version": "2026-09-09-de-kindergeld-sgbiv8-threshold-paragraph"
