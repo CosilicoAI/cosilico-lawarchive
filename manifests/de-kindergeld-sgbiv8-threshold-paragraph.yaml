@@ -15,8 +15,11 @@
         "browser_user_agent": true
       },
       "extraction": {
-        "html_content_selector": "#content p:-soup-contains(\"(1a)\")",
-        "segmentation": "single_block"
+        "html_content_selector": "#content",
+        "segmentation": "anchor_range",
+        "html_start_selector": "p:-soup-contains(\"(1a)\")",
+        "html_stop_selector": "p:-soup-contains(\"(1b)\")",
+        "section_label": "inhalt"
       },
       "metadata": {
         "primary_source": true,
