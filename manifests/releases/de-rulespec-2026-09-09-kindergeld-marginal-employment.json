@@ -1,5 +1,5 @@
 {
-  "description": "Preserve all37 DE scopes and add complete official MiLoG and MiLoV5 sources for the SGBIV8 marginal-employment dependency of EStG32(4). Historic applicability remains source-bound.",
+  "description": "Preserve all 37 preceding DE scopes and add MiLoG, MiLoV5 and the official SGB IV8 historical text applicable in2025 for the EStG32(4) marginal-employment dependency.",
   "name": "de-rulespec-2026-09-09-kindergeld-marginal-employment",
   "quality_profile": "complete-expression-dates-v1",
   "scopes": [
@@ -197,6 +197,11 @@
       "jurisdiction": "de",
       "document_class": "regulation",
       "version": "2026-09-09-de-kindergeld-marginal-employment"
+    },
+    {
+      "jurisdiction": "de",
+      "document_class": "statute",
+      "version": "2026-09-09-de-kindergeld-marginal-employment-history"
     }
   ]
 }
